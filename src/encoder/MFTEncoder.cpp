@@ -83,6 +83,13 @@ void MFTEncoder::init(D3D11Device& device, const Config& config) {
         throw std::runtime_error("MFTEncoder: H.264 MFT Encoder not found");
     }
 
+    // Unlock async MFT if needed
+    Microsoft::WRL::ComPtr<IMFAttributes> attributes;
+    hr = transform_->GetAttributes(&attributes);
+    if (SUCCEEDED(hr)) {
+        attributes->SetUINT32(MF_TRANSFORM_ASYNC_UNLOCK, TRUE);
+    }
+
     // Try setting D3D manager
     hr = transform_->ProcessMessage(MFT_MESSAGE_SET_D3D_MANAGER, reinterpret_cast<ULONG_PTR>(dxgiMgr_.Get()));
     if (FAILED(hr)) {
