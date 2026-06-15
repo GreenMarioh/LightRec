@@ -63,7 +63,7 @@ void WGCCapture::start() {
         session_ = framePool_.CreateCaptureSession(item_);
 
         // 5. Configure session properties
-        session_.IsCursorEnabled(config_.captureCursor);
+        session_.IsCursorCaptureEnabled(config_.captureCursor);
 
         // Disable border if supported (Win10 2004 / build 19041 and above)
         if (winrt::Windows::Foundation::Metadata::ApiInformation::IsPropertyPresent(

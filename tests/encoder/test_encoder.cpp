@@ -12,7 +12,6 @@
 // Include our mock headers
 #include "mock_headers/core/D3D11Device.h"
 #include "mock_headers/config/Config.h"
-#include "mock_headers/clip/EncodedPacket.h"
 
 // Include encoder headers
 #include "../../src/encoder/IEncoder.h"

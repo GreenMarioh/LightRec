@@ -99,7 +99,7 @@ void DXGICapture::captureLoop(std::stop_token stopToken) {
         }
 
         Microsoft::WRL::ComPtr<ID3D11Texture2D> sourceTexture;
-        hr = dxgiResource->As(&sourceTexture);
+        hr = dxgiResource.As(&sourceTexture);
         if (SUCCEEDED(hr) && sourceTexture) {
             FrameCallback cb;
             {

@@ -1,11 +1,13 @@
 #include "MFTEncoder.h"
 #include <stdexcept>
 #include <iostream>
+#include <icodecapi.h>
 #include <codecapi.h>
+#include <mferror.h>
 
 #ifndef FORMAT_MPEG2Video
 // {e06d8026-db46-11cf-b4d1-00805f6cbbea}
-DEFINE_GUID(FORMAT_MPEG2Video, 0xe06d8026, 0xdb46, 0x11cf, 0xb4, 0xd1, 0x00, 0x80, 0x5f, 0x6c, 0xbb, 0xea);
+static const GUID FORMAT_MPEG2Video = { 0xe06d8026, 0xdb46, 0x11cf, { 0xb4, 0xd1, 0x00, 0x80, 0x5f, 0x6c, 0xbb, 0xea } };
 #endif
 
 MFTEncoder::~MFTEncoder() {
@@ -22,7 +24,7 @@ void MFTEncoder::init(D3D11Device& device, const Config& config) {
     cleanup();
     config_ = config;
 
-    HRESULT hr = MFTCreateDXGIDeviceManager(&dxgiResetToken_, &dxgiMgr_);
+    HRESULT hr = MFCreateDXGIDeviceManager(&dxgiResetToken_, &dxgiMgr_);
     if (FAILED(hr)) {
         throw std::runtime_error("MFTEncoder: Failed to create DXGI Device Manager");
     }
@@ -101,12 +103,14 @@ void MFTEncoder::init(D3D11Device& device, const Config& config) {
     MFSetAttributeSize(outType.Get(), MF_MT_FRAME_SIZE, config.width, config.height);
     MFSetAttributeRatio(outType.Get(), MF_MT_FRAME_RATE, config.fps, 1);
     outType->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive);
-    outType->SetGUID(MF_MT_AM_FORMAT_TYPE, FORMAT_MPEG2Video);
+    MFSetAttributeRatio(outType.Get(), MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
 
     hr = transform_->SetOutputType(0, outType.Get(), 0);
     if (FAILED(hr)) {
         cleanup();
-        throw std::runtime_error("MFTEncoder: Failed to set output media type on MFT");
+        char errBuf[64];
+        sprintf(errBuf, "MFTEncoder: Failed to set output media type, hr=0x%08X", (unsigned int)hr);
+        throw std::runtime_error(errBuf);
     }
 
     // Configure Input Media Type
@@ -122,11 +126,14 @@ void MFTEncoder::init(D3D11Device& device, const Config& config) {
     MFSetAttributeSize(inType.Get(), MF_MT_FRAME_SIZE, config.width, config.height);
     MFSetAttributeRatio(inType.Get(), MF_MT_FRAME_RATE, config.fps, 1);
     inType->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive);
+    MFSetAttributeRatio(inType.Get(), MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
 
     hr = transform_->SetInputType(0, inType.Get(), 0);
     if (FAILED(hr)) {
         cleanup();
-        throw std::runtime_error("MFTEncoder: Failed to set input media type on MFT");
+        char errBuf[64];
+        sprintf(errBuf, "MFTEncoder: Failed to set input media type, hr=0x%08X", (unsigned int)hr);
+        throw std::runtime_error(errBuf);
     }
 
     // Configure Rate Control and GOP

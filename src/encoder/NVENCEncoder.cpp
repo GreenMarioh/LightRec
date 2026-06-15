@@ -281,3 +281,7 @@ void NVENCEncoder::flush() {
     
     nvencApi_.nvEncEncodePicture(encoder_, &picParams);
 }
+
+void NVENCEncoder::setOutputCallback(OutputCallback cb) {
+    callback_ = std::move(cb);
+}

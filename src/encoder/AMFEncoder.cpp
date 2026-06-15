@@ -58,7 +58,7 @@ void AMFEncoder::init(D3D11Device& device, const Config& config) {
         throw std::runtime_error("AMFEncoder: Failed to initialize DX11 context in AMF");
     }
 
-    res = factory_->CreateComponent(context_, AMFVideoEncoderVCE_H264, &encoder_);
+    res = factory_->CreateComponent(context_, AMFVideoEncoderVCE_AVC, &encoder_);
     if (res != AMF_OK) {
         cleanup();
         throw std::runtime_error("AMFEncoder: Failed to create AMF H264 VCE component");
@@ -91,7 +91,7 @@ void AMFEncoder::pollOutput() {
         AMF_RESULT res = encoder_->QueryOutput(&data);
         if (res == AMF_OK && data != nullptr) {
             amf::AMFBufferPtr buffer(data);
-            uint8_t* ptr = static_cast<uint8_t*>(buffer->GetMemory());
+            uint8_t* ptr = static_cast<uint8_t*>(buffer->GetNative());
             size_t size = buffer->GetSize();
             int64_t pts = buffer->GetPts();
 
@@ -150,7 +150,7 @@ void AMFEncoder::flush() {
             res = encoder_->QueryOutput(&data);
             if (res == AMF_OK && data != nullptr) {
                 amf::AMFBufferPtr buffer(data);
-                uint8_t* ptr = static_cast<uint8_t*>(buffer->GetMemory());
+                uint8_t* ptr = static_cast<uint8_t*>(buffer->GetNative());
                 size_t size = buffer->GetSize();
                 int64_t pts = buffer->GetPts();
 
