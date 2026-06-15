@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++20 -O2 -Wall -Wextra -Isrc -Itests/encoder/mock_headers/dummy -I/ucrt64/include -I../../src/encoder
+CXXFLAGS = -std=c++20 -O2 -Wall -Wextra -Isrc -Imock_headers/dummy -I/ucrt64/include -I../../src/encoder
 
 LDFLAGS = -L/ucrt64/lib -lvpl -ld3d11 -ldxgi -lmfplat -lmfuuid -lmf -lole32 -luser32
 

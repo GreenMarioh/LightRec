@@ -1,6 +1,6 @@
 #pragma once
 #include "IEncoder.h"
-#include <vpl/mfxvideo.h>
+#include <vpl/mfx.h>
 #include <wrl/client.h>
 #include <vector>
 #include <memory>

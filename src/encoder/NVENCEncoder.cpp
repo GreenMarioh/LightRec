@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <iostream>
 
-typedef NVSTATUS(NVENCAPI* PNVENCODEAPICREATEINSTANCE)(NV_ENCODE_API_FUNCTION_LIST*);
+typedef NVENCSTATUS(NVENCAPI* PNVENCODEAPICREATEINSTANCE)(NV_ENCODE_API_FUNCTION_LIST*);
 
 NVENCEncoder::~NVENCEncoder() {
     cleanup();
@@ -21,7 +21,7 @@ void NVENCEncoder::cleanup() {
                 if (nvencApi_.nvEncUnregisterAsyncEvent) {
                     NV_ENC_EVENT_PARAMS eventParams = {};
                     eventParams.version = NV_ENC_EVENT_PARAMS_VER;
-                    eventParams.registeredEvent = buf.event;
+                    eventParams.completionEvent = buf.event;
                     nvencApi_.nvEncUnregisterAsyncEvent(encoder_, &eventParams);
                 }
                 CloseHandle(buf.event);
@@ -66,7 +66,7 @@ void NVENCEncoder::init(D3D11Device& device, const Config& config) {
     }
 
     nvencApi_.version = NV_ENCODE_API_FUNCTION_LIST_VER;
-    NVSTATUS status = createInstance(&nvencApi_);
+    NVENCSTATUS status = createInstance(&nvencApi_);
     if (status != NV_ENC_SUCCESS) {
         cleanup();
         throw std::runtime_error("NVENCEncoder: NvEncodeAPICreateInstance failed");
@@ -77,7 +77,7 @@ void NVENCEncoder::init(D3D11Device& device, const Config& config) {
     openParams.version = NV_ENC_OPEN_ENCODE_SESSION_EX_PARAMS_VER;
     openParams.device = device.device();
     openParams.deviceType = NV_ENC_DEVICE_TYPE_DIRECTX;
-    openParams.apiVersion = NV_ENCODE_API_VERSION;
+    openParams.apiVersion = NVENCAPI_VERSION;
 
     status = nvencApi_.nvEncOpenEncodeSessionEx(&openParams, &encoder_);
     if (status != NV_ENC_SUCCESS) {
@@ -89,7 +89,7 @@ void NVENCEncoder::init(D3D11Device& device, const Config& config) {
     NV_ENC_INITIALIZE_PARAMS initParams = {};
     initParams.version = NV_ENC_INITIALIZE_PARAMS_VER;
     initParams.encodeGUID = NV_ENC_CODEC_H264_GUID;
-    initParams.presetGUID = NV_ENC_PRESET_LOW_LATENCY_HQ_GUID;
+    initParams.presetGUID = NV_ENC_PRESET_P3_GUID;
     initParams.encodeWidth = config.width;
     initParams.encodeHeight = config.height;
     initParams.darWidth = config.width;
@@ -103,7 +103,7 @@ void NVENCEncoder::init(D3D11Device& device, const Config& config) {
     NV_ENC_PRESET_CONFIG presetConfig = {};
     presetConfig.version = NV_ENC_PRESET_CONFIG_VER;
     presetConfig.presetCfg.version = NV_ENC_CONFIG_VER;
-    status = nvencApi_.nvEncGetEncodePresetConfig(encoder_, NV_ENC_CODEC_H264_GUID, NV_ENC_PRESET_LOW_LATENCY_HQ_GUID, &presetConfig);
+    status = nvencApi_.nvEncGetEncodePresetConfig(encoder_, NV_ENC_CODEC_H264_GUID, NV_ENC_PRESET_P3_GUID, &presetConfig);
     
     NV_ENC_CONFIG encodeConfig = {};
     encodeConfig.version = NV_ENC_CONFIG_VER;
@@ -148,7 +148,7 @@ void NVENCEncoder::init(D3D11Device& device, const Config& config) {
 
         NV_ENC_EVENT_PARAMS eventParams = {};
         eventParams.version = NV_ENC_EVENT_PARAMS_VER;
-        eventParams.registeredEvent = buf.event;
+        eventParams.completionEvent = buf.event;
         status = nvencApi_.nvEncRegisterAsyncEvent(encoder_, &eventParams);
         if (status != NV_ENC_SUCCESS) {
             cleanup();
@@ -171,7 +171,7 @@ void NVENCEncoder::processOutputBuffer(OutputBuffer& buf) {
     lockParams.outputBitstream = buf.bitstream;
     lockParams.doNotWait = 0;
 
-    NVSTATUS status = nvencApi_.nvEncLockBitstream(encoder_, &lockParams);
+    NVENCSTATUS status = nvencApi_.nvEncLockBitstream(encoder_, &lockParams);
     if (status == NV_ENC_SUCCESS) {
         if (callback_) {
             EncodedPacket packet = ConvertAnnexBToAvcc(
@@ -200,7 +200,7 @@ void NVENCEncoder::encode(ID3D11Texture2D* texture, int64_t pts) {
 
     // Register texture resource if not done already
     auto it = registeredResources_.find(texture);
-    NV_ENC_REGISTERED_RESOURCE regRes = nullptr;
+    NV_ENC_REGISTERED_PTR regRes = nullptr;
     if (it == registeredResources_.end()) {
         NV_ENC_REGISTER_RESOURCE regParams = {};
         regParams.version = NV_ENC_REGISTER_RESOURCE_VER;
@@ -211,7 +211,7 @@ void NVENCEncoder::encode(ID3D11Texture2D* texture, int64_t pts) {
         regParams.bufferFormat = NV_ENC_BUFFER_FORMAT_NV12;
         regParams.bufferUsage = NV_ENC_INPUT_IMAGE;
         
-        NVSTATUS status = nvencApi_.nvEncRegisterResource(encoder_, &regParams);
+        NVENCSTATUS status = nvencApi_.nvEncRegisterResource(encoder_, &regParams);
         if (status != NV_ENC_SUCCESS) {
             return;
         }
@@ -225,7 +225,7 @@ void NVENCEncoder::encode(ID3D11Texture2D* texture, int64_t pts) {
     NV_ENC_MAP_INPUT_RESOURCE mapParams = {};
     mapParams.version = NV_ENC_MAP_INPUT_RESOURCE_VER;
     mapParams.registeredResource = regRes;
-    NVSTATUS status = nvencApi_.nvEncMapInputResource(encoder_, &mapParams);
+    NVENCSTATUS status = nvencApi_.nvEncMapInputResource(encoder_, &mapParams);
     if (status != NV_ENC_SUCCESS) {
         return;
     }
@@ -252,12 +252,9 @@ void NVENCEncoder::encode(ID3D11Texture2D* texture, int64_t pts) {
     status = nvencApi_.nvEncEncodePicture(encoder_, &picParams);
 
     // Unmap input resource (can be done immediately as NVENC has scheduled the read)
-    NV_ENC_UNMAP_INPUT_RESOURCE unmapParams = {};
-    unmapParams.version = NV_ENC_UNMAP_INPUT_RESOURCE_VER;
-    unmapParams.mappedInputBuffer = inputPtr;
-    nvencApi_.nvEncUnmapInputResource(encoder_, &unmapParams);
+    nvencApi_.nvEncUnmapInputResource(encoder_, inputPtr);
 
-    if (status == NV_ENC_SUCCESS || status == NV_ENC_SUCCESS_AND_MORE_DATA) {
+    if (status == NV_ENC_SUCCESS) {
         // Rotate buffer
         currentBufferIdx_ = (currentBufferIdx_ + 1) % outputBuffers_.size();
     } else {
@@ -279,7 +276,7 @@ void NVENCEncoder::flush() {
     // Send end-of-stream command if supported
     NV_ENC_PIC_PARAMS picParams = {};
     picParams.version = NV_ENC_PIC_PARAMS_VER;
-    picParams.encodePICFlags = NV_ENC_PIC_FLAG_EOS;
+    picParams.encodePicFlags = NV_ENC_PIC_FLAG_EOS;
     picParams.completionEvent = outputBuffers_[currentBufferIdx_].event;
     
     nvencApi_.nvEncEncodePicture(encoder_, &picParams);

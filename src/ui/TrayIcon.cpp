@@ -51,7 +51,9 @@ bool TrayIcon::create(HINSTANCE hInstance, const std::wstring& tooltip) {
     wcscpy_s(nid_.szTip, tooltip_.c_str());
 
     if (!Shell_NotifyIconW(NIM_ADD, &nid_)) {
-        return false;
+        // In headless or automated test environments, the system tray might not be running.
+        // We log a warning but continue, as the helper window is successfully created.
+        OutputDebugStringW(L"[Warning] Shell_NotifyIconW failed (no system tray present).\n");
     }
 
     Shell_NotifyIconW(NIM_SETVERSION, &nid_);

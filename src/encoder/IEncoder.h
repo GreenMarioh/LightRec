@@ -8,6 +8,8 @@
 #include "../config/Config.h"
 #include "../clip/EncodedPacket.h"
 
+using EncodedPacket = lightrec::clip::EncodedPacket;
+
 class IEncoder {
 public:
     using OutputCallback = std::function<void(EncodedPacket)>;

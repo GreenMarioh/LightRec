@@ -111,7 +111,15 @@ std::vector<EncodedPacket> RingBuffer::snapshot() const {
             copy_from_buffer(current_r, &header, sizeof(PacketHeader));
 
             // Sanity checks on header in case we read partially overwritten/corrupt values
-            if (header.total_size == 0 || header.total_size > buffer_size_) {
+            if (header.total_size < sizeof(PacketHeader) || header.total_size > buffer_size_) {
+                success = false;
+                break;
+            }
+            if (header.data_size > buffer_size_ || header.sps_size > buffer_size_ || header.pps_size > buffer_size_) {
+                success = false;
+                break;
+            }
+            if (header.data_size + header.sps_size + header.pps_size + sizeof(PacketHeader) != header.total_size) {
                 success = false;
                 break;
             }

@@ -21,7 +21,7 @@ private:
     Config config_;
 
     // Resource registration map to prevent duplicate registration
-    std::unordered_map<ID3D11Texture2D*, NV_ENC_REGISTERED_RESOURCE> registeredResources_;
+    std::unordered_map<ID3D11Texture2D*, NV_ENC_REGISTERED_PTR> registeredResources_;
 
     // Asynchronous output buffers
     struct OutputBuffer {
