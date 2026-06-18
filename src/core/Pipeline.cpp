@@ -68,6 +68,9 @@ void Pipeline::start() {
     if (frameSource_) {
         frameSource_->start();
     }
+    if (exporter_) {
+        exporter_->start();
+    }
 }
 
 void Pipeline::stop() {
@@ -79,6 +82,9 @@ void Pipeline::stop() {
     }
     if (encoder_) {
         encoder_->flush();
+    }
+    if (exporter_) {
+        exporter_->stop();
     }
 }
 

@@ -84,7 +84,8 @@ bool SettingsDialog::show(HWND parentHwnd, UIConfig &config, ApplyCallback onApp
     wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wc.hbrBackground = hBackBrush_;
     WNDCLASSEXW tempWc;
-    if (!GetClassInfoExW(wc.hInstance, wc.lpszClassName, &tempWc)) {
+    if (!GetClassInfoExW(wc.hInstance, wc.lpszClassName, &tempWc))
+    {
         RegisterClassExW(&wc);
     }
 
@@ -493,7 +494,6 @@ LRESULT SettingsDialog::handleMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 
     case WM_DESTROY:
     {
-        PostQuitMessage(0);
         return 0;
     }
     }

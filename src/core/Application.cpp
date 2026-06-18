@@ -90,14 +90,28 @@ int Application::run() {
 
     MSG msg = {};
     while (running_) {
-        if (GetMessageW(&msg, nullptr, 0, 0)) {
-            if (msg.message == WM_HOTKEY) {
-                hotkeys_.processMessage(msg);
+        DWORD result = MsgWaitForMultipleObjects(0, nullptr, FALSE, 1000, QS_ALLINPUT);
+        if (result == WAIT_OBJECT_0) {
+            while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
+                if (msg.message == WM_QUIT) {
+                    running_ = false;
+                    break;
+                }
+                if (msg.message == WM_HOTKEY) {
+                    hotkeys_.processMessage(msg);
+                }
+                TranslateMessage(&msg);
+                DispatchMessageW(&msg);
             }
-            TranslateMessage(&msg);
-            DispatchMessageW(&msg);
-        } else {
-            break;
+        }
+
+        if (overlay_.isVisible() && pipeline_) {
+            overlay_.updateStatus(
+                tray_.getRecordingState(), 
+                60, 
+                80.0f, 
+                L"None"
+            );
         }
     }
 

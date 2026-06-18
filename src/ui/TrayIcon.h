@@ -24,6 +24,7 @@ public:
 
     // Sets the recording state to update the tray icon and menu checks
     void setRecordingState(RecordingState state);
+    RecordingState getRecordingState() const { return state_; }
     void setTooltip(const std::wstring& tooltip);
 
     // Register callbacks for tray menu interactions
