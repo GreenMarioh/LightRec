@@ -1,8 +1,8 @@
 #pragma once
 #include "IEncoder.h"
-#include <AMF/core/Factory.h>
-#include <AMF/core/Context.h>
-#include <AMF/components/VideoEncoderVCE.h>
+#include <core/Factory.h>
+#include <core/Context.h>
+#include <components/VideoEncoderVCE.h>
 #include <wrl/client.h>
 #include <vector>
 #include <memory>

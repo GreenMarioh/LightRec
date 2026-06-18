@@ -7,6 +7,7 @@
 #include <dwmapi.h>
 #include <commctrl.h>
 #include <string>
+#include <algorithm>
 
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "uxtheme.lib")
@@ -15,76 +16,124 @@
 
 // Control IDs
 #define ID_REPLAY_CHECKBOX 1001
-#define ID_DURATION_COMBO  1002
-#define ID_ENCODER_COMBO   1003
-#define ID_HOTKEY_CTRL     1004
-#define ID_HOTKEY_SHIFT    1005
-#define ID_HOTKEY_ALT      1006
-#define ID_HOTKEY_KEY      1007
-#define ID_OUTPUT_DIR      1008
-#define ID_BROWSE_BTN      1009
-#define ID_OK_BTN          1010
-#define ID_CANCEL_BTN      1011
-#define ID_APPLY_BTN       1012
+#define ID_DURATION_COMBO 1002
+#define ID_ENCODER_COMBO 1003
+#define ID_HOTKEY_CTRL 1004
+#define ID_HOTKEY_SHIFT 1005
+#define ID_HOTKEY_ALT 1006
+#define ID_HOTKEY_KEY 1007
+#define ID_OUTPUT_DIR 1008
+#define ID_BROWSE_BTN 1009
+#define ID_OK_BTN 1010
+#define ID_CANCEL_BTN 1011
+#define ID_APPLY_BTN 1012
 
 // Enable modern visual styles
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
-SettingsDialog::SettingsDialog() {
+SettingsDialog::SettingsDialog()
+{
     hBackBrush_ = CreateSolidBrush(RGB(28, 28, 28));
     hEditBrush_ = CreateSolidBrush(RGB(45, 45, 45));
 }
 
-SettingsDialog::~SettingsDialog() {
-    if (hBackBrush_) DeleteObject(hBackBrush_);
-    if (hEditBrush_) DeleteObject(hEditBrush_);
-    if (hFontNormal_) DeleteObject(hFontNormal_);
-    if (hFontBold_) DeleteObject(hFontBold_);
+SettingsDialog::~SettingsDialog()
+{
+    if (hBackBrush_)
+        DeleteObject(hBackBrush_);
+    if (hEditBrush_)
+        DeleteObject(hEditBrush_);
+    if (hFontNormal_)
+        DeleteObject(hFontNormal_);
+    if (hFontBold_)
+        DeleteObject(hFontBold_);
 }
 
-LRESULT CALLBACK SettingsDialog::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    SettingsDialog* pThis = nullptr;
-    if (uMsg == WM_NCCREATE) {
-        CREATESTRUCTW* pCreate = reinterpret_cast<CREATESTRUCTW*>(lParam);
-        pThis = reinterpret_cast<SettingsDialog*>(pCreate->lpCreateParams);
+LRESULT CALLBACK SettingsDialog::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    SettingsDialog *pThis = nullptr;
+    if (uMsg == WM_NCCREATE)
+    {
+        CREATESTRUCTW *pCreate = reinterpret_cast<CREATESTRUCTW *>(lParam);
+        pThis = reinterpret_cast<SettingsDialog *>(pCreate->lpCreateParams);
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
-    } else {
-        pThis = reinterpret_cast<SettingsDialog*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
+    }
+    else
+    {
+        pThis = reinterpret_cast<SettingsDialog *>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
     }
 
-    if (pThis) {
+    if (pThis)
+    {
         pThis->hwnd_ = hwnd;
         return pThis->handleMessage(hwnd, uMsg, wParam, lParam);
     }
     return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }
 
-bool SettingsDialog::show(HWND parentHwnd, UIConfig& config, ApplyCallback onApply) {
+bool SettingsDialog::show(HWND parentHwnd, UIConfig &config, ApplyCallback onApply)
+{
     config_ = &config;
     onApply_ = onApply;
 
-    WNDCLASSEXW wc = { 0 };
+    WNDCLASSEXW wc = {0};
     wc.cbSize = sizeof(wc);
     wc.lpfnWndProc = SettingsDialog::WndProc;
     wc.hInstance = GetModuleHandleW(nullptr);
     wc.lpszClassName = L"LightRecSettingsClass";
     wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wc.hbrBackground = hBackBrush_;
-    RegisterClassExW(&wc);
+    WNDCLASSEXW tempWc;
+    if (!GetClassInfoExW(wc.hInstance, wc.lpszClassName, &tempWc)) {
+        RegisterClassExW(&wc);
+    }
 
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
     int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-    int w = 495;
-    int h = 505;
+    int clientW = 495;
+    int clientH = 550; // Increased to ensure no clipping at the bottom
+
+    RECT rc = {0, 0, clientW, clientH};
+    AdjustWindowRectEx(&rc, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, FALSE, 0);
+
+    int w = rc.right - rc.left;
+    int h = rc.bottom - rc.top;
+
     int x = (screenWidth - w) / 2;
     int y = (screenHeight - h) / 2;
 
-    if (parentHwnd) {
-        RECT rect;
-        GetWindowRect(parentHwnd, &rect);
-        x = rect.left + ((rect.right - rect.left) - w) / 2;
-        y = rect.top + ((rect.bottom - rect.top) - h) / 2;
+    if (parentHwnd && IsWindow(parentHwnd))
+    {
+        RECT prect;
+        GetWindowRect(parentHwnd, &prect);
+        int pw = prect.right - prect.left;
+        int ph = prect.bottom - prect.top;
+
+        // Only trust the parent's rect if it looks like a real, sized window.
+        if (pw > 50 && ph > 50)
+        {
+            x = prect.left + (pw - w) / 2;
+            y = prect.top + (ph - h) / 2;
+        }
     }
+
+    // Clamp to the work area of whichever monitor we're actually on,
+    // so the dialog (and its title bar) can never land off-screen.
+    HMONITOR hMon = (parentHwnd && IsWindow(parentHwnd))
+                        ? MonitorFromWindow(parentHwnd, MONITOR_DEFAULTTONEAREST)
+                        : MonitorFromPoint(POINT{x, y}, MONITOR_DEFAULTTOPRIMARY);
+
+    MONITORINFO mi = {sizeof(mi)};
+    GetMonitorInfo(hMon, &mi);
+
+    if (x < mi.rcWork.left)
+        x = mi.rcWork.left;
+    if (y < mi.rcWork.top)
+        y = mi.rcWork.top;
+    if (x + w > mi.rcWork.right)
+        x = mi.rcWork.right - w;
+    if (y + h > mi.rcWork.bottom)
+        y = mi.rcWork.bottom - h;
 
     INITCOMMONCONTROLSEX icex;
     icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
@@ -92,23 +141,24 @@ bool SettingsDialog::show(HWND parentHwnd, UIConfig& config, ApplyCallback onApp
     InitCommonControlsEx(&icex);
 
     hwnd_ = CreateWindowExW(
-        WS_EX_DLGMODALFRAME,
+        0,
         L"LightRecSettingsClass",
         L"LightRec Settings",
-        WS_POPUPWINDOW | WS_CAPTION | WS_VISIBLE,
+        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE,
         x, y, w, h,
         parentHwnd,
         nullptr,
         GetModuleHandleW(nullptr),
-        this
-    );
+        this);
 
-    if (!hwnd_) return false;
+    if (!hwnd_)
+        return false;
 
     BOOL useDarkMode = TRUE;
     DwmSetWindowAttribute(hwnd_, 20, &useDarkMode, sizeof(useDarkMode));
 
-    if (parentHwnd) {
+    if (parentHwnd)
+    {
         EnableWindow(parentHwnd, FALSE);
     }
 
@@ -116,17 +166,21 @@ bool SettingsDialog::show(HWND parentHwnd, UIConfig& config, ApplyCallback onApp
     updateControlStates();
 
     MSG msg;
-    while (GetMessageW(&msg, nullptr, 0, 0)) {
-        if (!IsDialogMessageW(hwnd_, &msg)) {
+    while (GetMessageW(&msg, nullptr, 0, 0))
+    {
+        if (!IsDialogMessageW(hwnd_, &msg))
+        {
             TranslateMessage(&msg);
             DispatchMessageW(&msg);
         }
-        if (!IsWindow(hwnd_)) {
+        if (!IsWindow(hwnd_))
+        {
             break;
         }
     }
 
-    if (parentHwnd) {
+    if (parentHwnd)
+    {
         EnableWindow(parentHwnd, TRUE);
         SetFocus(parentHwnd);
     }
@@ -134,7 +188,8 @@ bool SettingsDialog::show(HWND parentHwnd, UIConfig& config, ApplyCallback onApp
     return true;
 }
 
-void SettingsDialog::createControls(HWND hwnd) {
+void SettingsDialog::createControls(HWND hwnd)
+{
     hFontNormal_ = CreateFontW(16, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
     hFontBold_ = CreateFontW(18, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
 
@@ -149,7 +204,7 @@ void SettingsDialog::createControls(HWND hwnd) {
 
     HWND hwndDurLabel = CreateWindowExW(0, L"STATIC", L"Clip Duration:", WS_CHILD | WS_VISIBLE, 35, 125, 150, 20, hwnd, nullptr, nullptr, nullptr);
     SendMessageW(hwndDurLabel, WM_SETFONT, (WPARAM)hFontNormal_, TRUE);
-    
+
     hwndDurationCombo_ = CreateWindowExW(0, L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_VSCROLL, 200, 122, 230, 150, hwnd, (HMENU)ID_DURATION_COMBO, nullptr, nullptr);
     SendMessageW(hwndDurationCombo_, WM_SETFONT, (WPARAM)hFontNormal_, TRUE);
     SendMessageW(hwndDurationCombo_, CB_ADDSTRING, 0, (LPARAM)L"15 seconds");
@@ -159,9 +214,10 @@ void SettingsDialog::createControls(HWND hwnd) {
 
     HWND hwndEncLabel = CreateWindowExW(0, L"STATIC", L"Preferred Encoder:", WS_CHILD | WS_VISIBLE, 35, 165, 150, 20, hwnd, nullptr, nullptr, nullptr);
     SendMessageW(hwndEncLabel, WM_SETFONT, (WPARAM)hFontNormal_, TRUE);
-    
+
     hwndEncoderCombo_ = CreateWindowExW(0, L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_VSCROLL, 200, 162, 230, 150, hwnd, (HMENU)ID_ENCODER_COMBO, nullptr, nullptr);
     SendMessageW(hwndEncoderCombo_, WM_SETFONT, (WPARAM)hFontNormal_, TRUE);
+    SendMessageW(hwndEncoderCombo_, CB_ADDSTRING, 0, (LPARAM)L"Auto Select");
     SendMessageW(hwndEncoderCombo_, CB_ADDSTRING, 0, (LPARAM)L"Intel QSV");
     SendMessageW(hwndEncoderCombo_, CB_ADDSTRING, 0, (LPARAM)L"NVIDIA NVENC");
     SendMessageW(hwndEncoderCombo_, CB_ADDSTRING, 0, (LPARAM)L"AMD AMF");
@@ -188,18 +244,14 @@ void SettingsDialog::createControls(HWND hwnd) {
     hwndHotkeyKeyCombo_ = CreateWindowExW(0, L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_VSCROLL, 200, 277, 230, 150, hwnd, (HMENU)ID_HOTKEY_KEY, nullptr, nullptr);
     SendMessageW(hwndHotkeyKeyCombo_, WM_SETFONT, (WPARAM)hFontNormal_, TRUE);
 
-    const struct { UINT vk; const wchar_t* name; } kKeys[] = {
-        { VK_F1, L"F1" }, { VK_F2, L"F2" }, { VK_F3, L"F3" }, { VK_F4, L"F4" },
-        { VK_F5, L"F5" }, { VK_F6, L"F6" }, { VK_F7, L"F7" }, { VK_F8, L"F8" },
-        { VK_F9, L"F9" }, { VK_F10, L"F10" }, { VK_F11, L"F11" }, { VK_F12, L"F12" },
-        { 'A', L"A" }, { 'B', L"B" }, { 'C', L"C" }, { 'D', L"D" }, { 'E', L"E" },
-        { 'F', L"F" }, { 'G', L"G" }, { 'H', L"H" }, { 'I', L"I" }, { 'J', L"J" },
-        { 'K', L"K" }, { 'L', L"L" }, { 'M', L"M" }, { 'N', L"N" }, { 'O', L"O" },
-        { 'P', L"P" }, { 'Q', L"Q" }, { 'R', L"R" }, { 'S', L"S" }, { 'T', L"T" },
-        { 'U', L"U" }, { 'V', L"V" }, { 'W', L"W" }, { 'X', L"X" }, { 'Y', L"Y" },
-        { 'Z', L"Z" }, { VK_SPACE, L"Space" }, { VK_RETURN, L"Enter" }
-    };
-    for (const auto& k : kKeys) {
+    const struct
+    {
+        UINT vk;
+        const wchar_t *name;
+    } kKeys[] = {
+        {VK_F1, L"F1"}, {VK_F2, L"F2"}, {VK_F3, L"F3"}, {VK_F4, L"F4"}, {VK_F5, L"F5"}, {VK_F6, L"F6"}, {VK_F7, L"F7"}, {VK_F8, L"F8"}, {VK_F9, L"F9"}, {VK_F10, L"F10"}, {VK_F11, L"F11"}, {VK_F12, L"F12"}, {'A', L"A"}, {'B', L"B"}, {'C', L"C"}, {'D', L"D"}, {'E', L"E"}, {'F', L"F"}, {'G', L"G"}, {'H', L"H"}, {'I', L"I"}, {'J', L"J"}, {'K', L"K"}, {'L', L"L"}, {'M', L"M"}, {'N', L"N"}, {'O', L"O"}, {'P', L"P"}, {'Q', L"Q"}, {'R', L"R"}, {'S', L"S"}, {'T', L"T"}, {'U', L"U"}, {'V', L"V"}, {'W', L"W"}, {'X', L"X"}, {'Y', L"Y"}, {'Z', L"Z"}, {VK_SPACE, L"Space"}, {VK_RETURN, L"Enter"}};
+    for (const auto &k : kKeys)
+    {
         int idx = (int)SendMessageW(hwndHotkeyKeyCombo_, CB_ADDSTRING, 0, (LPARAM)k.name);
         SendMessageW(hwndHotkeyKeyCombo_, CB_SETITEMDATA, idx, (LPARAM)k.vk);
     }
@@ -231,22 +283,31 @@ void SettingsDialog::createControls(HWND hwnd) {
     SetWindowTheme(hwndOutputDirEdit_, L"Explorer", nullptr);
 }
 
-void SettingsDialog::loadConfigValues() {
-    if (!config_) return;
+void SettingsDialog::loadConfigValues()
+{
+    if (!config_)
+        return;
 
     SendMessageW(hwndReplayCheckbox_, BM_SETCHECK, config_->replayEnabled ? BST_CHECKED : BST_UNCHECKED, 0);
 
     int durIdx = 1;
-    if (config_->clipDurationSec == 15) durIdx = 0;
-    else if (config_->clipDurationSec == 30) durIdx = 1;
-    else if (config_->clipDurationSec == 60) durIdx = 2;
-    else if (config_->clipDurationSec == 120) durIdx = 3;
+    if (config_->clipDurationSec == 15)
+        durIdx = 0;
+    else if (config_->clipDurationSec == 30)
+        durIdx = 1;
+    else if (config_->clipDurationSec == 60)
+        durIdx = 2;
+    else if (config_->clipDurationSec == 120)
+        durIdx = 3;
     SendMessageW(hwndDurationCombo_, CB_SETCURSEL, durIdx, 0);
 
     int encIdx = static_cast<int>(config_->preferredEncoder);
-    if (encIdx >= 0 && encIdx < 4) {
+    if (encIdx >= 0 && encIdx < 4)
+    {
         SendMessageW(hwndEncoderCombo_, CB_SETCURSEL, encIdx, 0);
-    } else {
+    }
+    else
+    {
         SendMessageW(hwndEncoderCombo_, CB_SETCURSEL, 0, 0);
     }
 
@@ -255,9 +316,11 @@ void SettingsDialog::loadConfigValues() {
     SendMessageW(hwndHotkeyAlt_, BM_SETCHECK, config_->hotkeyAlt ? BST_CHECKED : BST_UNCHECKED, 0);
 
     int count = (int)SendMessageW(hwndHotkeyKeyCombo_, CB_GETCOUNT, 0, 0);
-    for (int i = 0; i < count; ++i) {
+    for (int i = 0; i < count; ++i)
+    {
         UINT vk = (UINT)SendMessageW(hwndHotkeyKeyCombo_, CB_GETITEMDATA, i, 0);
-        if (vk == config_->hotkeyVk) {
+        if (vk == config_->hotkeyVk)
+        {
             SendMessageW(hwndHotkeyKeyCombo_, CB_SETCURSEL, i, 0);
             break;
         }
@@ -266,20 +329,24 @@ void SettingsDialog::loadConfigValues() {
     SetWindowTextW(hwndOutputDirEdit_, config_->outputDir.c_str());
 }
 
-bool SettingsDialog::saveConfigValues() {
-    if (!config_) return false;
+bool SettingsDialog::saveConfigValues()
+{
+    if (!config_)
+        return false;
 
     bool ctrl = SendMessageW(hwndHotkeyCtrl_, BM_GETCHECK, 0, 0) == BST_CHECKED;
     bool shift = SendMessageW(hwndHotkeyShift_, BM_GETCHECK, 0, 0) == BST_CHECKED;
     bool alt = SendMessageW(hwndHotkeyAlt_, BM_GETCHECK, 0, 0) == BST_CHECKED;
-    
+
     int keyIdx = (int)SendMessageW(hwndHotkeyKeyCombo_, CB_GETCURSEL, 0, 0);
     UINT vk = 0;
-    if (keyIdx != CB_ERR) {
+    if (keyIdx != CB_ERR)
+    {
         vk = (UINT)SendMessageW(hwndHotkeyKeyCombo_, CB_GETITEMDATA, keyIdx, 0);
     }
 
-    if (!ctrl && !shift && !alt && (vk < VK_F1 || vk > VK_F24)) {
+    if (!ctrl && !shift && !alt && (vk < VK_F1 || vk > VK_F24))
+    {
         MessageBoxW(hwnd_, L"Please select at least one modifier (Ctrl, Shift, or Alt) if using a standard key.", L"Invalid Hotkey", MB_OK | MB_ICONWARNING);
         return false;
     }
@@ -287,13 +354,18 @@ bool SettingsDialog::saveConfigValues() {
     config_->replayEnabled = SendMessageW(hwndReplayCheckbox_, BM_GETCHECK, 0, 0) == BST_CHECKED;
 
     int durIdx = (int)SendMessageW(hwndDurationCombo_, CB_GETCURSEL, 0, 0);
-    if (durIdx == 0) config_->clipDurationSec = 15;
-    else if (durIdx == 1) config_->clipDurationSec = 30;
-    else if (durIdx == 2) config_->clipDurationSec = 60;
-    else if (durIdx == 3) config_->clipDurationSec = 120;
+    if (durIdx == 0)
+        config_->clipDurationSec = 15;
+    else if (durIdx == 1)
+        config_->clipDurationSec = 30;
+    else if (durIdx == 2)
+        config_->clipDurationSec = 60;
+    else if (durIdx == 3)
+        config_->clipDurationSec = 120;
 
     int encIdx = (int)SendMessageW(hwndEncoderCombo_, CB_GETCURSEL, 0, 0);
-    if (encIdx != CB_ERR) {
+    if (encIdx != CB_ERR)
+    {
         config_->preferredEncoder = static_cast<EncoderType>(encIdx);
     }
 
@@ -308,25 +380,32 @@ bool SettingsDialog::saveConfigValues() {
 
     config_->save();
 
-    if (onApply_) {
+    if (onApply_)
+    {
         onApply_(*config_);
     }
 
     return true;
 }
 
-void SettingsDialog::browseOutputFolder() {
-    IFileOpenDialog* pFileOpen = nullptr;
-    if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pFileOpen)))) {
+void SettingsDialog::browseOutputFolder()
+{
+    IFileOpenDialog *pFileOpen = nullptr;
+    if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pFileOpen))))
+    {
         DWORD dwOptions;
-        if (SUCCEEDED(pFileOpen->GetOptions(&dwOptions))) {
+        if (SUCCEEDED(pFileOpen->GetOptions(&dwOptions)))
+        {
             pFileOpen->SetOptions(dwOptions | FOS_PICKFOLDERS);
         }
-        if (SUCCEEDED(pFileOpen->Show(hwnd_))) {
-            IShellItem* pItem = nullptr;
-            if (SUCCEEDED(pFileOpen->GetResult(&pItem))) {
+        if (SUCCEEDED(pFileOpen->Show(hwnd_)))
+        {
+            IShellItem *pItem = nullptr;
+            if (SUCCEEDED(pFileOpen->GetResult(&pItem)))
+            {
                 PWSTR pszPath = nullptr;
-                if (SUCCEEDED(pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszPath))) {
+                if (SUCCEEDED(pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszPath)))
+                {
                     SetWindowTextW(hwndOutputDirEdit_, pszPath);
                     CoTaskMemFree(pszPath);
                 }
@@ -337,7 +416,8 @@ void SettingsDialog::browseOutputFolder() {
     }
 }
 
-void SettingsDialog::updateControlStates() {
+void SettingsDialog::updateControlStates()
+{
     bool enabled = SendMessageW(hwndReplayCheckbox_, BM_GETCHECK, 0, 0) == BST_CHECKED;
     EnableWindow(hwndDurationCombo_, enabled);
     EnableWindow(hwndEncoderCombo_, enabled);
@@ -347,58 +427,75 @@ void SettingsDialog::updateControlStates() {
     EnableWindow(hwndHotkeyKeyCombo_, enabled);
 }
 
-LRESULT SettingsDialog::handleMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
-        case WM_CREATE:
-            createControls(hwnd);
-            return 0;
+LRESULT SettingsDialog::handleMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+    case WM_CREATE:
+        createControls(hwnd);
+        return 0;
 
-        case WM_COMMAND: {
-            WORD id = LOWORD(wParam);
-            WORD code = HIWORD(wParam);
+    case WM_COMMAND:
+    {
+        WORD id = LOWORD(wParam);
+        WORD code = HIWORD(wParam);
 
-            if (id == ID_REPLAY_CHECKBOX && code == BN_CLICKED) {
-                updateControlStates();
-            } else if (id == ID_BROWSE_BTN && code == BN_CLICKED) {
-                browseOutputFolder();
-            } else if (id == ID_OK_BTN && code == BN_CLICKED) {
-                if (saveConfigValues()) {
-                    DestroyWindow(hwnd);
-                }
-            } else if (id == ID_CANCEL_BTN && code == BN_CLICKED) {
+        if (id == ID_REPLAY_CHECKBOX && code == BN_CLICKED)
+        {
+            updateControlStates();
+        }
+        else if (id == ID_BROWSE_BTN && code == BN_CLICKED)
+        {
+            browseOutputFolder();
+        }
+        else if (id == ID_OK_BTN && code == BN_CLICKED)
+        {
+            if (saveConfigValues())
+            {
                 DestroyWindow(hwnd);
-            } else if (id == ID_APPLY_BTN && code == BN_CLICKED) {
-                saveConfigValues();
             }
-            return 0;
         }
+        else if (id == ID_CANCEL_BTN && code == BN_CLICKED)
+        {
+            DestroyWindow(hwnd);
+        }
+        else if (id == ID_APPLY_BTN && code == BN_CLICKED)
+        {
+            saveConfigValues();
+        }
+        return 0;
+    }
 
-        case WM_CTLCOLORSTATIC: {
-            HDC hdc = (HDC)wParam;
-            SetTextColor(hdc, RGB(240, 240, 240));
-            SetBkMode(hdc, TRANSPARENT);
-            return (INT_PTR)hBackBrush_;
-        }
+    case WM_CTLCOLORSTATIC:
+    {
+        HDC hdc = (HDC)wParam;
+        SetTextColor(hdc, RGB(240, 240, 240));
+        SetBkMode(hdc, TRANSPARENT);
+        return (INT_PTR)hBackBrush_;
+    }
 
-        case WM_CTLCOLOREDIT: {
-            HDC hdc = (HDC)wParam;
-            SetTextColor(hdc, RGB(240, 240, 240));
-            SetBkColor(hdc, RGB(45, 45, 45));
-            return (INT_PTR)hEditBrush_;
-        }
+    case WM_CTLCOLOREDIT:
+    {
+        HDC hdc = (HDC)wParam;
+        SetTextColor(hdc, RGB(240, 240, 240));
+        SetBkColor(hdc, RGB(45, 45, 45));
+        return (INT_PTR)hEditBrush_;
+    }
 
-        case WM_PAINT: {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
-            FillRect(hdc, &ps.rcPaint, hBackBrush_);
-            EndPaint(hwnd, &ps);
-            return 0;
-        }
+    case WM_PAINT:
+    {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hwnd, &ps);
+        FillRect(hdc, &ps.rcPaint, hBackBrush_);
+        EndPaint(hwnd, &ps);
+        return 0;
+    }
 
-        case WM_DESTROY: {
-            PostQuitMessage(0);
-            return 0;
-        }
+    case WM_DESTROY:
+    {
+        PostQuitMessage(0);
+        return 0;
+    }
     }
     return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }

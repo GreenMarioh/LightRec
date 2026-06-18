@@ -1,0 +1,3 @@
+C:/Users/mohni/Desktop/LightRec/build/_deps/ffnvcodec-subbuild/CMakeFiles/ffnvcodec-populate.dir
+C:/Users/mohni/Desktop/LightRec/build/_deps/ffnvcodec-subbuild/CMakeFiles/ALL_BUILD.dir
+C:/Users/mohni/Desktop/LightRec/build/_deps/ffnvcodec-subbuild/CMakeFiles/ZERO_CHECK.dir

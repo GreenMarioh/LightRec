@@ -1,8 +1,11 @@
 #include "Pipeline.h"
+#include "../export/Exporter.h"
 
 namespace lightrec::core {
 
 Pipeline::Pipeline(
+    ID3D11Device* device,
+    ID3D11DeviceContext* context,
     std::unique_ptr<LightRec::Capture::IFrameSource> frameSource,
     std::unique_ptr<IEncoder> encoder,
     std::unique_ptr<lightrec::audio::IAudioSource> audioSource,
@@ -10,15 +13,35 @@ Pipeline::Pipeline(
     size_t videoBufferSize,
     size_t audioBufferSize
 )
-    : frameSource_(std::move(frameSource))
+    : device_(device)
+    , context_(context)
+    , frameSource_(std::move(frameSource))
     , encoder_(std::move(encoder))
     , audioSource_(std::move(audioSource))
+    , clipDuration_(clipDuration)
     , videoBuffer_(clipDuration, videoBufferSize)
     , audioBuffer_(audioBufferSize)
 {
+    exporter_ = std::make_unique<lightrec::export_::Exporter>(*this, clipDuration);
+
     if (frameSource_ && encoder_) {
         frameSource_->setCallback([this](ID3D11Texture2D* texture, int64_t pts) {
-            encoder_->encode(texture, pts);
+            D3D11_TEXTURE2D_DESC desc;
+            texture->GetDesc(&desc);
+
+            if (!converter_ || !texturePool_ || currentWidth_ != desc.Width || currentHeight_ != desc.Height) {
+                currentWidth_ = desc.Width;
+                currentHeight_ = desc.Height;
+                converter_ = std::make_unique<GpuConverter>(device_);
+                texturePool_ = std::make_unique<TexturePool>(device_, currentWidth_, currentHeight_, DXGI_FORMAT_NV12, 8);
+            }
+
+            auto pooledTex = texturePool_->acquire();
+            if (pooledTex) {
+                converter_->convert(texture, pooledTex->texture, context_);
+                encoder_->encode(pooledTex->texture, pts);
+                texturePool_->release(pooledTex->slot);
+            }
         });
 
         encoder_->setOutputCallback([this](lightrec::clip::EncodedPacket packet) {
@@ -56,6 +79,15 @@ void Pipeline::stop() {
     }
     if (encoder_) {
         encoder_->flush();
+    }
+}
+
+void Pipeline::saveClip() {
+    if (exporter_) {
+        // Run export asynchronously to not block the caller
+        std::thread([this]() {
+            exporter_->exportClip(clipDuration_, "LightRecClip");
+        }).detach();
     }
 }
 

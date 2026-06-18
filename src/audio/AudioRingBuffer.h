@@ -47,7 +47,7 @@ public:
         if (occupied >= capacity_) return 0; // Buffer is completely full
 
         const size_t available = capacity_ - occupied;
-        const size_t to_write = std::min(count, available);
+        const size_t to_write = (std::min)(count, available);
 
         for (size_t i = 0; i < to_write; ++i) {
             buffer_[(write_idx + i) & mask_] = data[i];

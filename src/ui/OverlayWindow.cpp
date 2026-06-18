@@ -109,7 +109,7 @@ LRESULT OverlayWindow::handleMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
             return 0;
         }
         case WM_DESTROY:
-            PostQuitMessage(0);
+            // Don't PostQuitMessage(0) here because it kills the main app loop
             return 0;
     }
     return DefWindowProcW(hwnd, uMsg, wParam, lParam);

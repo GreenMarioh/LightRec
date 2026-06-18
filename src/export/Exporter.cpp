@@ -87,7 +87,7 @@ bool Exporter::exportClip(std::chrono::seconds duration, const std::string& game
     std::vector<int16_t> pcm16;
     pcm16.reserve(audio_snap.data.size());
     for (float sample : audio_snap.data) {
-        float s = std::max(-1.0f, std::min(1.0f, sample));
+        float s = (std::max)(-1.0f, (std::min)(1.0f, sample));
         pcm16.push_back(static_cast<int16_t>(s * 32767.0f));
     }
 

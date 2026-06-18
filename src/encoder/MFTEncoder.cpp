@@ -1,4 +1,5 @@
 #include "MFTEncoder.h"
+#include <mfidl.h>
 #include <stdexcept>
 #include <iostream>
 #include <icodecapi.h>

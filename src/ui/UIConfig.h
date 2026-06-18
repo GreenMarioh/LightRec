@@ -2,12 +2,7 @@
 #include <string>
 #include <cstdint>
 
-enum class EncoderType : uint32_t {
-    QSV = 0,
-    NVENC = 1,
-    AMF = 2,
-    Software = 3
-};
+#include "../config/Config.h"
 
 struct UIConfig {
     bool replayEnabled = true;

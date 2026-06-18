@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\mohni\Desktop\LightRec\build\_deps\libvpl-subbuild\CMakeFiles\c665baa2db56b9545b8e58577b6b2aa4\libvpl-populate-mkdir.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\mohni\Desktop\LightRec\build\_deps\libvpl-subbuild\CMakeFiles\c665baa2db56b9545b8e58577b6b2aa4\libvpl-populate-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\mohni\Desktop\LightRec\build\_deps\libvpl-subbuild\CMakeFiles\c665baa2db56b9545b8e58577b6b2aa4\libvpl-populate-update.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\mohni\Desktop\LightRec\build\_deps\libvpl-subbuild\CMakeFiles\c665baa2db56b9545b8e58577b6b2aa4\libvpl-populate-patch.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\mohni\Desktop\LightRec\build\_deps\libvpl-subbuild\CMakeFiles\c665baa2db56b9545b8e58577b6b2aa4\libvpl-populate-configure.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\mohni\Desktop\LightRec\build\_deps\libvpl-subbuild\CMakeFiles\c665baa2db56b9545b8e58577b6b2aa4\libvpl-populate-build.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\mohni\Desktop\LightRec\build\_deps\libvpl-subbuild\CMakeFiles\c665baa2db56b9545b8e58577b6b2aa4\libvpl-populate-install.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\mohni\Desktop\LightRec\build\_deps\libvpl-subbuild\CMakeFiles\c665baa2db56b9545b8e58577b6b2aa4\libvpl-populate-test.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\mohni\Desktop\LightRec\build\_deps\libvpl-subbuild\CMakeFiles\d5959081793db282dc3103e3af31955f\libvpl-populate-complete.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\mohni\Desktop\LightRec\build\_deps\libvpl-subbuild\CMakeFiles\6d6a0d631127eeac0e81207d867d858f\libvpl-populate.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\mohni\Desktop\LightRec\build\_deps\libvpl-subbuild\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\mohni\Desktop\LightRec\build\_deps\libvpl-subbuild\CMakeFiles\libvpl-populate" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{221969C0-8862-33ED-8B2A-7685AA76AE7B}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

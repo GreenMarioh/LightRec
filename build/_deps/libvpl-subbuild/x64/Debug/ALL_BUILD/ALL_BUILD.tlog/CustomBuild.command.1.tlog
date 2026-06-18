@@ -1,0 +1,10 @@
+^C:\USERS\MOHNI\DESKTOP\LIGHTREC\BUILD\_DEPS\LIBVPL-SUBBUILD\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/mohni/Desktop/LightRec/build/_deps/libvpl-subbuild -BC:/Users/mohni/Desktop/LightRec/build/_deps/libvpl-subbuild --check-stamp-file C:/Users/mohni/Desktop/LightRec/build/_deps/libvpl-subbuild/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

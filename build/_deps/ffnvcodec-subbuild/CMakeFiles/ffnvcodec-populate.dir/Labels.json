@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Users/mohni/Desktop/LightRec/build/_deps/ffnvcodec-subbuild/CMakeFiles/ffnvcodec-populate"
+		},
+		{
+			"file" : "C:/Users/mohni/Desktop/LightRec/build/_deps/ffnvcodec-subbuild/CMakeFiles/18c92c0371e0a0d95718903cdfb2adcd/ffnvcodec-populate.rule"
+		},
+		{
+			"file" : "C:/Users/mohni/Desktop/LightRec/build/_deps/ffnvcodec-subbuild/CMakeFiles/db098941735fc20714d2e2f94d965536/ffnvcodec-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Users/mohni/Desktop/LightRec/build/_deps/ffnvcodec-subbuild/CMakeFiles/b2db44df0b37d0e42d84b2abf27abc99/ffnvcodec-populate-build.rule"
+		},
+		{
+			"file" : "C:/Users/mohni/Desktop/LightRec/build/_deps/ffnvcodec-subbuild/CMakeFiles/b2db44df0b37d0e42d84b2abf27abc99/ffnvcodec-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Users/mohni/Desktop/LightRec/build/_deps/ffnvcodec-subbuild/CMakeFiles/b2db44df0b37d0e42d84b2abf27abc99/ffnvcodec-populate-download.rule"
+		},
+		{
+			"file" : "C:/Users/mohni/Desktop/LightRec/build/_deps/ffnvcodec-subbuild/CMakeFiles/b2db44df0b37d0e42d84b2abf27abc99/ffnvcodec-populate-install.rule"
+		},
+		{
+			"file" : "C:/Users/mohni/Desktop/LightRec/build/_deps/ffnvcodec-subbuild/CMakeFiles/b2db44df0b37d0e42d84b2abf27abc99/ffnvcodec-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Users/mohni/Desktop/LightRec/build/_deps/ffnvcodec-subbuild/CMakeFiles/b2db44df0b37d0e42d84b2abf27abc99/ffnvcodec-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Users/mohni/Desktop/LightRec/build/_deps/ffnvcodec-subbuild/CMakeFiles/b2db44df0b37d0e42d84b2abf27abc99/ffnvcodec-populate-test.rule"
+		},
+		{
+			"file" : "C:/Users/mohni/Desktop/LightRec/build/_deps/ffnvcodec-subbuild/CMakeFiles/b2db44df0b37d0e42d84b2abf27abc99/ffnvcodec-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"ffnvcodec-populate"
+		],
+		"name" : "ffnvcodec-populate"
+	}
+}

@@ -1,0 +1,6 @@
+C:\Users\mohni\Desktop\LightRec\third_party\imgui\imgui.cpp;C:\Users\mohni\Desktop\LightRec\build\imgui.dir\Release\imgui.obj
+C:\Users\mohni\Desktop\LightRec\third_party\imgui\imgui_draw.cpp;C:\Users\mohni\Desktop\LightRec\build\imgui.dir\Release\imgui_draw.obj
+C:\Users\mohni\Desktop\LightRec\third_party\imgui\imgui_tables.cpp;C:\Users\mohni\Desktop\LightRec\build\imgui.dir\Release\imgui_tables.obj
+C:\Users\mohni\Desktop\LightRec\third_party\imgui\imgui_widgets.cpp;C:\Users\mohni\Desktop\LightRec\build\imgui.dir\Release\imgui_widgets.obj
+C:\Users\mohni\Desktop\LightRec\third_party\imgui\backends\imgui_impl_win32.cpp;C:\Users\mohni\Desktop\LightRec\build\imgui.dir\Release\imgui_impl_win32.obj
+C:\Users\mohni\Desktop\LightRec\third_party\imgui\backends\imgui_impl_dx11.cpp;C:\Users\mohni\Desktop\LightRec\build\imgui.dir\Release\imgui_impl_dx11.obj
